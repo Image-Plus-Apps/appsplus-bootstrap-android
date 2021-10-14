@@ -1,0 +1,25 @@
+comments:
+  AbsentOrWrongFileLicense:
+    active: false
+
+formatting:
+  NoWildcardImports:
+    active: false
+  PackageName:
+    active: false
+
+style:
+  WildcardImport:
+    active: false
+  SerialVersionUIDInSerializableClass:
+    active: false
+
+naming:
+  PackageNaming:
+    packagePattern: '^[a-z]+(\.[a-z][A-Za-z0-9_]*)*$'
+    
+complexity:
+  TooManyFunctions:
+    ignoreOverridden: true
+  LongParameterList:
+    excludes: ['**/test/**', '**/androidTest/**']
