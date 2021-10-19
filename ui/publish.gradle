@@ -2,7 +2,7 @@ apply plugin: 'maven-publish'
 
 def LIB_GROUP_ID = 'uk.co.appsplus.bootstrap'
 def LIB_ARTIFACT_ID = 'ui'
-def LIB_VERSION = sdk_version
+def LIB_VERSION = project.hasProperty('version') ? project.property('version') : "0.0.1"
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
@@ -10,7 +10,20 @@ task sourceJar(type: Jar) {
 }
 
 publishing {
+    def envFile = rootProject.file(".env")
+    def envProperties = new Properties()
+    if (envFile.exists()) {
+        envProperties.load(new FileInputStream(envFile))
+    }
     repositories {
+        maven {
+            name = "GithubPackages"
+            url = uri("https://maven.pkg.github.com/richard-clements/appsplus-bootstrap-android")
+            credentials {
+                username = envProperties['GITHUB_USER'] ?: project.properties['GITHUB_USER']
+                password = envProperties['GITHUB_PERSONAL_ACCESS_TOKEN'] ?: project.properties['GITHUB_PERSONAL_ACCESS_TOKEN']
+            }
+        }
         maven {
             name = 'CustomMavenRepo'
             url = "file://${buildDir}/repo"
