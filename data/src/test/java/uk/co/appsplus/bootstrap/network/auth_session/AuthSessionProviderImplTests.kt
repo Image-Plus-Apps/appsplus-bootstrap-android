@@ -1,4 +1,4 @@
-package uk.co.appsplus.bootstrap.data.network.auth_session
+package uk.co.appsplus.bootstrap.network.auth_session
 
 import com.squareup.moshi.Moshi
 import io.kotest.core.spec.style.StringSpec
@@ -16,8 +16,6 @@ import kotlinx.coroutines.test.runBlockingTest
 import uk.co.appsplus.bootstrap.mocks.data.MockKeyValueStorage
 import uk.co.appsplus.bootstrap.mocks.models.MockAuthToken
 import uk.co.appsplus.bootstrap.mocks.models.authTokenGenerator
-import uk.co.appsplus.bootstrap.network.auth_session.AuthSessionProviderImpl
-import uk.co.appsplus.bootstrap.network.auth_session.currentToken
 import uk.co.appsplus.bootstrap.network.models.AuthToken
 
 class AuthSessionProviderImplTests : StringSpec() {

@@ -1,9 +1,7 @@
-package uk.co.appsplus.bootstrap.data.models
+package uk.co.appsplus.bootstrap.network.models
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import uk.co.appsplus.bootstrap.network.models.Pagination
-import uk.co.appsplus.bootstrap.network.models.flatten
 
 class PaginationTests : StringSpec() {
 

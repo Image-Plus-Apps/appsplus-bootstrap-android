@@ -1,4 +1,4 @@
-package uk.co.appsplus.bootstrap.data.network.authenticator
+package uk.co.appsplus.bootstrap.network.authenticator
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
@@ -15,7 +15,6 @@ import retrofit2.Retrofit
 import uk.co.appsplus.bootstrap.mocks.data.MockApi
 import uk.co.appsplus.bootstrap.mocks.data.MockAuthSessionProvider
 import uk.co.appsplus.bootstrap.mocks.models.authTokenGenerator
-import uk.co.appsplus.bootstrap.network.authenticator.AuthorizationInterceptor
 import uk.co.appsplus.bootstrap.network.models.AuthorizationType
 import java.util.concurrent.TimeUnit
 
