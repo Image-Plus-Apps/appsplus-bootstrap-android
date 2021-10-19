@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_15
+    targetCompatibility = JavaVersion.VERSION_15
+}
+
+ext {
+    kotest_version = "4.6.0"
+}
+
+dependencies {
+    implementation "io.kotest:kotest-assertions-core:$kotest_version"
+    implementation "io.kotest:kotest-property-jvm:$kotest_version"
+    implementation "io.kotest:kotest-runner-junit5:$kotest_version"
+}

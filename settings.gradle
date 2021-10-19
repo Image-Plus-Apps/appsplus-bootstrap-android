@@ -1,2 +1,2 @@
-include ':data', ':ui'
+include ':data', ':ui', ':testing'
 rootProject.name='Apps+ Bootstrap'
