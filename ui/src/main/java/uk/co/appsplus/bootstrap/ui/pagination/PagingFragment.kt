@@ -8,7 +8,8 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.ListAdapter
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import uk.co.appsplus.bootstrap.ui.R
 
 abstract class PagingFragment<T, VM, Adapter>(
@@ -34,44 +35,47 @@ abstract class PagingFragment<T, VM, Adapter>(
     abstract fun hideRefreshing()
 
     protected open fun bindViewModel() {
-        viewModel.items.observe(viewLifecycleOwner) {
-            listAdapter.submitList(it)
-        }
-        viewModel.isRefreshing.observe(viewLifecycleOwner) {
-            if (!it) {
-                hideRefreshing()
-            }
-        }
-        viewModel.isPaging.observe(viewLifecycleOwner) {
-            if (it) {
-                when (pagingDirection) {
-                    PagingDirection.TOP -> adapter.addAdapter(0, pagingAdapter)
-                    PagingDirection.BOTTOM -> adapter.addAdapter(pagingAdapter)
+        viewModel.items
+            .flowOn(Dispatchers.Main)
+            .onEach { listAdapter.submitList(it) }
+            .launchIn(lifecycleScope)
+
+        viewModel.isRefreshing
+            .filter { !it }
+            .flowOn(Dispatchers.Main)
+            .onEach { hideRefreshing() }
+            .launchIn(lifecycleScope)
+
+        viewModel.isPaging
+            .flowOn(Dispatchers.Main)
+            .onEach {
+                if (it) {
+                    when (pagingDirection) {
+                        PagingDirection.TOP -> adapter.addAdapter(0, pagingAdapter)
+                        PagingDirection.BOTTOM -> adapter.addAdapter(pagingAdapter)
+                    }
                 }
-            } else {
-                adapter.removeAdapter(pagingAdapter)
             }
-        }
-        viewModel.pagingError.observe(viewLifecycleOwner) {
-            hideCurrentSnackbar()
-            currentSnackbar = when (it) {
-                PagingError.Refresh -> {
-                    createFetchErrorSnackbar()
-                        ?.apply { addFailureSnackbarActions(this) }
+            .launchIn(lifecycleScope)
+
+        viewModel.pagingError
+            .flowOn(Dispatchers.Main)
+            .onEach {
+                hideCurrentSnackbar()
+                currentSnackbar = when (it) {
+                    PagingError.Refresh -> {
+                        createFetchErrorSnackbar()
+                            ?.apply { addFailureSnackbarActions(this) }
+                    }
+                    PagingError.Paging -> {
+                        createPagingFailedSnackbar()
+                            ?.apply { addFailureSnackbarActions(this) }
+                    }
+                    else -> null
                 }
-                PagingError.Paging -> {
-                    createPagingFailedSnackbar()
-                        ?.apply { addFailureSnackbarActions(this) }
-                }
-                else -> null
+                currentSnackbar?.show() ?: run { viewModel.returnToIdle() }
             }
-            currentSnackbar?.show() ?: run { viewModel.returnToIdle() }
-        }
-        lifecycleScope.launchWhenResumed {
-            viewModel.state.loadingState.collect {
-                viewModel.handleLoading(it)
-            }
-        }
+            .launchIn(lifecycleScope)
     }
 
     private fun addFailureSnackbarActions(snackbar: Snackbar) {

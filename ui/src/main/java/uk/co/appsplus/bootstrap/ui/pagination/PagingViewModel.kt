@@ -3,10 +3,8 @@ package uk.co.appsplus.bootstrap.ui.pagination
 import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.*
 import uk.co.appsplus.bootstrap.network.models.Pagination
 
 open class PagingViewModel<T> : ViewModel() {
@@ -22,29 +20,35 @@ open class PagingViewModel<T> : ViewModel() {
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     val state = State<T>()
 
-    val items get() = state.items.asLiveData()
+    val items: Flow<List<T>> get() = state.items
     val showItems = state.items.combine(state.loadingState) { items, loadingState ->
         items.isNotEmpty() &&
                 loadingState !in listOf(PagingState.InitialLoad, PagingState.InitialLoadError)
-    }.asLiveData()
+    }
 
-    val showLoading = state.loadingState.map { it == PagingState.InitialLoad }.asLiveData()
+    val showLoading = state.loadingState.map { it == PagingState.InitialLoad }
     val showEmpty = state.items.combine(state.loadingState) { items, loadingState ->
         items.isEmpty() &&
                 loadingState !in listOf(PagingState.InitialLoad, PagingState.InitialLoadError)
-    }.asLiveData()
+    }
 
-    val failedToLoad = state.loadingState.map { it == PagingState.InitialLoadError }.asLiveData()
+    val failedToLoad = state.loadingState.map { it == PagingState.InitialLoadError }
     val pagingError = state.loadingState.map {
         when (it) {
             PagingState.RefreshingError -> PagingError.Refresh
             PagingState.PagingError -> PagingError.Paging
             else -> null
         }
-    }.asLiveData()
+    }
 
-    val isRefreshing = state.loadingState.map { it == PagingState.Refreshing }.asLiveData()
-    val isPaging = state.loadingState.map { it == PagingState.Paging }.asLiveData()
+    val isRefreshing = state.loadingState.map { it == PagingState.Refreshing }
+    val isPaging = state.loadingState.map { it == PagingState.Paging }
+
+    init {
+        state.loadingState
+            .onEach { handleLoading(it) }
+            .launchIn(viewModelScope)
+    }
 
     fun returnToIdle() {
         state.loadingState.tryEmit(PagingState.Idle)
@@ -80,7 +84,7 @@ open class PagingViewModel<T> : ViewModel() {
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     open fun handleRefresh() {
-        val loadingState = if (items.value.isNullOrEmpty()) {
+        val loadingState = if (state.items.value.isNullOrEmpty()) {
             PagingState.InitialLoad
         } else {
             PagingState.Refreshing
@@ -93,7 +97,7 @@ open class PagingViewModel<T> : ViewModel() {
         state.loadingState.tryEmit(PagingState.Paging)
     }
 
-    fun handleLoading(loadingState: PagingState?) {
+    private fun handleLoading(loadingState: PagingState?) {
         when (loadingState) {
             PagingState.InitialLoad, PagingState.Refreshing -> {
                 loadPage(page = 1)
