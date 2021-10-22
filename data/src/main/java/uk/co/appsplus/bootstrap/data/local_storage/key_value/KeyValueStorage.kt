@@ -1,4 +1,4 @@
-package uk.co.appsplus.bootstrap.data.local_storage.secure
+package uk.co.appsplus.bootstrap.data.local_storage.key_value
 
 import java.io.Serializable
 

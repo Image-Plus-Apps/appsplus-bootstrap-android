@@ -14,7 +14,7 @@ import io.kotest.property.checkAll
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import uk.co.appsplus.bootstrap.data.local_storage.secure.KeyValueStorageImpl
+import uk.co.appsplus.bootstrap.data.local_storage.key_value.KeyValueStorageImpl
 import java.io.Serializable
 
 class KeyValueStorageImplTests : StringSpec() {

@@ -3,9 +3,8 @@ package uk.co.appsplus.bootstrap.network.auth_session
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import uk.co.appsplus.bootstrap.data.local_storage.secure.KeyValueStorage
+import uk.co.appsplus.bootstrap.data.local_storage.key_value.KeyValueStorage
 import uk.co.appsplus.bootstrap.network.models.AuthToken
-import uk.co.appsplus.bootstrap.network.models.SimpleAuthToken
 import java.util.*
 
 class AuthSessionProviderImpl(
