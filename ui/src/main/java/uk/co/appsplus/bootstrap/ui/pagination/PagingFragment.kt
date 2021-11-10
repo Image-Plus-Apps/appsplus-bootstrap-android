@@ -10,10 +10,10 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import uk.co.appsplus.bootstrap.ui.R
 
 abstract class PagingFragment<T, VM, Adapter>(
-    private val listAdapter: Adapter,
     private val pagingAdapter: PagingAdapter,
     private val pagingDirection: PagingDirection,
 ) : Fragment() where VM : PagingViewModel<T>, Adapter : ListAdapter<T, *> {
@@ -23,12 +23,13 @@ abstract class PagingFragment<T, VM, Adapter>(
     }
 
     abstract val viewModel: VM
-    val adapter = ConcatAdapter(listAdapter)
+    abstract val concatAdapter: ConcatAdapter
+    abstract val pagedAdapter: ListAdapter<T, *>
+
     private var currentSnackbar: Snackbar? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        configureListAdapter(listAdapter)
         bindViewModel()
     }
 
@@ -37,7 +38,7 @@ abstract class PagingFragment<T, VM, Adapter>(
     protected open fun bindViewModel() {
         viewModel.items
             .flowOn(Dispatchers.Main)
-            .onEach { listAdapter.submitList(it) }
+            .onEach(pagedAdapter::submitList)
             .launchIn(lifecycleScope)
 
         viewModel.isRefreshing
@@ -51,15 +52,17 @@ abstract class PagingFragment<T, VM, Adapter>(
             .onEach {
                 if (it) {
                     when (pagingDirection) {
-                        PagingDirection.TOP -> adapter.addAdapter(0, pagingAdapter)
-                        PagingDirection.BOTTOM -> adapter.addAdapter(pagingAdapter)
+                        PagingDirection.TOP -> concatAdapter.addAdapter(0, pagingAdapter)
+                        PagingDirection.BOTTOM -> concatAdapter.addAdapter(pagingAdapter)
                     }
                 }
+                pagingAdapter.isLoading = it
             }
             .launchIn(lifecycleScope)
 
         viewModel.pagingError
             .flowOn(Dispatchers.Main)
+            .filterNotNull()
             .onEach {
                 hideCurrentSnackbar()
                 currentSnackbar = when (it) {
@@ -84,17 +87,17 @@ abstract class PagingFragment<T, VM, Adapter>(
                 override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                     currentSnackbar = null
                     if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
-                        viewModel.returnToIdle()
+                        lifecycleScope.launch {
+                            viewModel.returnToIdle()
+                        }
                     }
                 }
             })
-            .setAction(R.string.retry) {
-                viewModel.retry()
+            .setAction(R.string.bootstrap_retry) {
+                lifecycleScope.launch {
+                    viewModel.retry()
+                }
             }
-    }
-
-    protected open fun configureListAdapter(adapter: Adapter) {
-        // Empty implementation
     }
 
     abstract fun createFetchErrorSnackbar(): Snackbar?

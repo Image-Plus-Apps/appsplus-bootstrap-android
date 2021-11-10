@@ -1,9 +1,7 @@
 package uk.co.appsplus.bootstrap.ui.pagination
 
-import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import uk.co.appsplus.bootstrap.network.models.Pagination
 
@@ -44,26 +42,18 @@ open class PagingViewModel<T> : ViewModel() {
     val isRefreshing = state.loadingState.map { it == PagingState.Refreshing }
     val isPaging = state.loadingState.map { it == PagingState.Paging }
 
-    init {
-        state.loadingState
-            .onEach { handleLoading(it) }
-            .launchIn(viewModelScope)
+    suspend fun returnToIdle() {
+        state.loadingState.emit(PagingState.Idle)
     }
 
-    fun returnToIdle() {
-        state.loadingState.tryEmit(PagingState.Idle)
-    }
-
-    @MainThread
-    fun refresh() {
+    suspend fun refresh() {
         when (state.loadingState.value) {
             PagingState.InitialLoad, PagingState.Refreshing -> return
             else -> handleRefresh()
         }
     }
 
-    @MainThread
-    fun fetchMore() {
+    suspend fun fetchMore() {
         if (!state.hasNextPage) return
         when (state.loadingState.value) {
             PagingState.Idle, PagingState.RefreshingError -> {
@@ -73,8 +63,7 @@ open class PagingViewModel<T> : ViewModel() {
         }
     }
 
-    @MainThread
-    fun retry() {
+    suspend fun retry() {
         when (state.loadingState.value) {
             PagingState.Idle, PagingState.InitialLoadError, PagingState.RefreshingError -> handleRefresh()
             PagingState.PagingError -> handleFetchNextPage()
@@ -83,21 +72,21 @@ open class PagingViewModel<T> : ViewModel() {
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    open fun handleRefresh() {
+    open suspend fun handleRefresh() {
         val loadingState = if (state.items.value.isNullOrEmpty()) {
             PagingState.InitialLoad
         } else {
             PagingState.Refreshing
         }
-        state.loadingState.tryEmit(loadingState)
+        state.loadingState.emit(loadingState)
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    open fun handleFetchNextPage() {
-        state.loadingState.tryEmit(PagingState.Paging)
+    open suspend fun handleFetchNextPage() {
+        state.loadingState.emit(PagingState.Paging)
     }
 
-    private fun handleLoading(loadingState: PagingState?) {
+    suspend fun handleLoading(loadingState: PagingState?) {
         when (loadingState) {
             PagingState.InitialLoad, PagingState.Refreshing -> {
                 loadPage(page = 1)
@@ -109,9 +98,9 @@ open class PagingViewModel<T> : ViewModel() {
         }
     }
 
-    open fun loadPage(page: Int) {}
+    open suspend fun loadPage(page: Int) {}
 
-    fun <Input> handleSuccess(
+    suspend fun <Input> handleSuccess(
         pagination: Pagination<Input>,
         map: (List<Input>) -> List<T>
     ) {
@@ -121,13 +110,13 @@ open class PagingViewModel<T> : ViewModel() {
         state.hasNextPage = meta.currentPage < meta.lastPage
 
         val items = (state.items.value).takeIf { meta.currentPage != 1 } ?: listOf()
-        state.items.tryEmit(items + map(paginationItems))
+        state.items.emit(items + map(paginationItems))
 
-        state.loadingState.tryEmit(PagingState.Idle)
+        state.loadingState.emit(PagingState.Idle)
     }
 
-    fun handleError() {
+    suspend fun handleError() {
         val errorState = state.loadingState.value.errorState()
-        state.loadingState.tryEmit(errorState)
+        state.loadingState.emit(errorState)
     }
 }
