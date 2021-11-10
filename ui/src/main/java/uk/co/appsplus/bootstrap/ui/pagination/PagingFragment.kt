@@ -2,6 +2,7 @@ package uk.co.appsplus.bootstrap.ui.pagination
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
@@ -27,6 +28,7 @@ abstract class PagingFragment<T, VM, Adapter>(
     abstract val pagedAdapter: ListAdapter<T, *>
 
     private var currentSnackbar: Snackbar? = null
+    @StringRes var retryTitle = R.string.bootstrap_retry
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -92,7 +94,7 @@ abstract class PagingFragment<T, VM, Adapter>(
                     }
                 }
             })
-            .setAction(R.string.bootstrap_retry) {
+            .setAction(retryTitle) {
                 lifecycleScope.launch {
                     viewModel.retry()
                 }
