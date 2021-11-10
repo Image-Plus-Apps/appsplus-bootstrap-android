@@ -14,8 +14,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     env:
-      GITHUB_USER: ${{ github.actor }}
-      GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -43,17 +42,17 @@ jobs:
           prerelease: false
           
       - name: Build Data Package
-        run: ./gradlew data:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew data:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
       - name: Release Data Package
-        run: ./gradlew data:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew data:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
           
       - name: Build UI Package
-        run: ./gradlew ui:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew ui:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
       - name: Release UI Package
-        run: ./gradlew ui:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew ui:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
           
       - name: Build Testing Package
-        run: ./gradlew testing:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew testing:assembleRelease -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
       - name: Release Testing Package
-        run: ./gradlew testing:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ env.GITHUB_USER }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ env.GITHUB_PERSONAL_ACCESS_TOKEN }}"
+        run: ./gradlew testing:publish -Pversion="${{ env.VERSION_NAME }}" -PGITHUB_USER="${{ github.actor }}" -PGITHUB_PERSONAL_ACCESS_TOKEN="{{ secrets.ACCESS_TOKEN }}"
       
