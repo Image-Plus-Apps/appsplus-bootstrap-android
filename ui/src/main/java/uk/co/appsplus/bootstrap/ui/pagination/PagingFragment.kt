@@ -74,7 +74,6 @@ abstract class PagingFragment<T, VM, Adapter>(
                         createPagingFailedSnackbar()
                             ?.apply { addFailureSnackbarActions(this) }
                     }
-                    else -> null
                 }
                 currentSnackbar?.show() ?: run { viewModel.returnToIdle() }
             }
