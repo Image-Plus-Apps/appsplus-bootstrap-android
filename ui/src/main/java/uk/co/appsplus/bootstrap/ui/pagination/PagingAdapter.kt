@@ -2,7 +2,7 @@ package uk.co.appsplus.bootstrap.ui.pagination
 
 import androidx.recyclerview.widget.RecyclerView
 
-abstract class PagingAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+abstract class PagingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter<T>() {
 
     var isLoading = false
         set(value) {

@@ -1,7 +1,7 @@
 package uk.co.appsplus.bootstrap.testing.data.local_storage.keyvalue
 
 import com.squareup.moshi.Moshi
-import uk.co.appsplus.bootstrap.data.local_storage.secure.KeyValueStorage
+import uk.co.appsplus.bootstrap.data.local_storage.key_value.KeyValueStorage
 import java.io.Serializable
 
 class MockKeyValueStorage : KeyValueStorage {
