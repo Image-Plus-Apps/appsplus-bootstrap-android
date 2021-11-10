@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Publish Packages
 
 # Controls when the workflow will run
 on:
@@ -19,6 +19,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Create Version
+        run: |
+          tagname=${{ github.ref }}
+          version=${tagname/refs\/tags\/v/}
+          echo "VERSION_NAME=${tagname/refs\/tags\/v/}" >> $GITHUB_ENV
       - name: Set Up JDK
         uses: actions/setup-java@v1
         with:
@@ -38,17 +43,17 @@ jobs:
           prerelease: false
           
       - name: Build Data Package
-        run: ./gradlew data:assembleRelease -Pversion="${{ github.ref }}"
+        run: ./gradlew data:assembleRelease -Pversion="${{ env.VERSION_NAME }}"
       - name: Release Data Package
-        run: ./gradlew data:publish -Pversion="${{ github.ref }}"
+        run: ./gradlew data:publish -Pversion="${{ env.VERSION_NAME }}"
           
       - name: Build UI Package
-        run: ./gradlew ui:assembleRelease -Pversion="${{ github.ref }}"
+        run: ./gradlew ui:assembleRelease -Pversion="${{ env.VERSION_NAME }}"
       - name: Release UI Package
-        run: ./gradlew ui:publish -Pversion="${{ github.ref }}"
+        run: ./gradlew ui:publish -Pversion="${{ env.VERSION_NAME }}"
           
       - name: Build Testing Package
-        run: ./gradlew testing:assembleRelease -Pversion="${{ github.ref }}"
+        run: ./gradlew testing:assembleRelease -Pversion="${{ env.VERSION_NAME }}"
       - name: Release Testing Package
-        run: ./gradlew testing:publish -Pversion="${{ github.ref }}"
+        run: ./gradlew testing:publish -Pversion="${{ env.VERSION_NAME }}"
       
