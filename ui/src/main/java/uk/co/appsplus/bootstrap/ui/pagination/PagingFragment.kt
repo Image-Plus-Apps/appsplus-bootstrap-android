@@ -31,12 +31,16 @@ abstract class PagingFragment<T, VM, Adapter>(
     private var currentSnackbar: Snackbar? = null
     @StringRes var retryTitle = R.string.bootstrap_retry
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         viewModel.state.loadingState
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach(viewModel::handleLoading)
             .launchIn(lifecycleScope)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         bindViewModel()
     }
 
