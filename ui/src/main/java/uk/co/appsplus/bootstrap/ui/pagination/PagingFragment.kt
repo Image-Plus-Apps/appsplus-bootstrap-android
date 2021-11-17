@@ -33,6 +33,10 @@ abstract class PagingFragment<T, VM, Adapter>(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.state.loadingState
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach(viewModel::handleLoading)
+            .launchIn(lifecycleScope)
         bindViewModel()
     }
 
