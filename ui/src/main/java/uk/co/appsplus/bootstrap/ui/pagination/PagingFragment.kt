@@ -33,10 +33,6 @@ abstract class PagingFragment<T, VM, Adapter>(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.state.loadingState
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach(viewModel::handleLoading)
-            .launchIn(lifecycleScope)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -47,16 +43,21 @@ abstract class PagingFragment<T, VM, Adapter>(
     abstract fun hideRefreshing()
 
     protected open fun bindViewModel() {
+        viewModel.state.loadingState
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach(viewModel::handleLoading)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         viewModel.items
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach(pagedAdapter::submitList)
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.isRefreshing
             .filter { !it }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { hideRefreshing() }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.isPaging
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -69,7 +70,7 @@ abstract class PagingFragment<T, VM, Adapter>(
                 }
                 pagingAdapter.isLoading = it
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.pagingError
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -88,7 +89,7 @@ abstract class PagingFragment<T, VM, Adapter>(
                 }
                 currentSnackbar?.show() ?: run { viewModel.returnToIdle() }
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun addFailureSnackbarActions(snackbar: Snackbar) {
