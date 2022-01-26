@@ -38,6 +38,10 @@ class AuthSessionProviderImpl(
         }
     }
 
+    override fun setDeviceName(deviceName: String) {
+        storage.putItem(DEVICE_NAME, deviceName)
+    }
+
     override fun authSessionChanged(): Flow<AuthToken?> {
         return authSessionChannel
     }

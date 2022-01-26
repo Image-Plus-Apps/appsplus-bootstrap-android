@@ -9,6 +9,7 @@ interface AuthSessionProvider {
     fun <Token : AuthToken> currentToken(clazz: Class<Token>): Token?
     fun <Token : AuthToken> replace(authSession: Token?)
     fun deviceName(): String
+    fun setDeviceName(deviceName: String)
     fun authSessionChanged(): Flow<AuthToken?>
 }
 
