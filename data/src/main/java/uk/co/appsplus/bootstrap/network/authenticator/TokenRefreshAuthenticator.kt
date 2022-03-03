@@ -25,7 +25,8 @@ class TokenRefreshAuthenticator<Token : AuthToken>(
 
     override fun authenticate(route: Route?, response: Response): Request? {
         return if (response.request().tag(AuthorizationType::class.java) == AuthorizationType.PUBLIC ||
-            response.code() != UNAUTHORIZED) {
+            response.code() != UNAUTHORIZED
+        ) {
             null
         } else if (response.priorResponse()?.code() == UNAUTHORIZED) {
             authSessionProvider.replace(null)
@@ -56,7 +57,7 @@ class TokenRefreshAuthenticator<Token : AuthToken>(
                 authSessionProvider.replace(
                     runBlocking {
                         try {
-                            tokenRefreshApi.refreshToken(
+                            tokenRefreshApi.createNewToken(
                                 TokenRefresh(deviceName),
                                 "Bearer ${authSession.refreshToken}"
                             )
