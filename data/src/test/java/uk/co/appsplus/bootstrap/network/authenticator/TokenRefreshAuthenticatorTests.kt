@@ -38,7 +38,7 @@ class TokenRefreshAuthenticatorTests : StringSpec() {
     var _mockTokenRefreshApi: MockTokenRefreshApi? = null
     val mockTokenRefreshApi get() = _mockTokenRefreshApi!!
 
-    var _refreshAuthenticator: TokenRefreshAuthenticator<MockAuthToken>? = null
+    var _refreshAuthenticator: TokenRefreshAuthenticator? = null
     val refreshAuthenticator get() = _refreshAuthenticator!!
 
     var _mockApi: MockApi? = null
