@@ -13,6 +13,7 @@ class MockAuthSessionProvider : AuthSessionProvider {
     var replacedSession: MockAuthToken? = null
     var replacedSessionCalls = 0
     var deviceNameResponse: String = "device_name"
+    var setDeviceName: String? = null
     var authSessionChangedFlow: Flow<MockAuthToken?>? = null
 
     override fun <Token : AuthToken> currentToken(clazz: Class<Token>): Token? {
@@ -34,6 +35,10 @@ class MockAuthSessionProvider : AuthSessionProvider {
 
     override fun deviceName(): String {
         return deviceNameResponse
+    }
+
+    override fun setDeviceName(deviceName: String) {
+        setDeviceName = deviceName
     }
 
     override fun authSessionChanged(): Flow<SimpleAuthToken?> {
