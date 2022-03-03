@@ -4,9 +4,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import uk.co.appsplus.bootstrap.mocks.models.MockAuthToken
 import uk.co.appsplus.bootstrap.network.authenticator.TokenRefreshApi
+import uk.co.appsplus.bootstrap.network.models.AuthToken
 import uk.co.appsplus.bootstrap.network.models.TokenRefresh
 
-class MockTokenRefreshApi : TokenRefreshApi<MockAuthToken> {
+class MockTokenRefreshApi : TokenRefreshApi {
 
     var tokenRefreshRequest: TokenRefresh? = null
     var authorizationRequest: String? = null
@@ -17,7 +18,7 @@ class MockTokenRefreshApi : TokenRefreshApi<MockAuthToken> {
     override suspend fun createNewToken(
         tokenRefresh: TokenRefresh,
         authorization: String
-    ): MockAuthToken {
+    ): AuthToken {
         tokenRefreshRequest = tokenRefresh
         authorizationRequest = authorization
         return runBlocking {

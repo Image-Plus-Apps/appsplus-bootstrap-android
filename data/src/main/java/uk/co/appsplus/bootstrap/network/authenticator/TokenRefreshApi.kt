@@ -7,14 +7,14 @@ import uk.co.appsplus.bootstrap.network.models.AuthToken
 import uk.co.appsplus.bootstrap.network.models.SimpleAuthToken
 import uk.co.appsplus.bootstrap.network.models.TokenRefresh
 
-interface TokenRefreshApi<Token : AuthToken> {
+interface TokenRefreshApi {
     suspend fun createNewToken(
         tokenRefresh: TokenRefresh,
         authorization: String
-    ): Token
+    ): AuthToken
 }
 
-interface SimpleAuthTokenRefreshApi : TokenRefreshApi<SimpleAuthToken> {
+interface SimpleAuthTokenRefreshApi : TokenRefreshApi {
     @POST("refresh")
     suspend fun refreshToken(
         @Body tokenRefresh: TokenRefresh,
@@ -24,5 +24,5 @@ interface SimpleAuthTokenRefreshApi : TokenRefreshApi<SimpleAuthToken> {
     override suspend fun createNewToken(
         tokenRefresh: TokenRefresh,
         authorization: String
-    ): SimpleAuthToken = refreshToken(tokenRefresh, authorization)
+    ): AuthToken = refreshToken(tokenRefresh, authorization)
 }

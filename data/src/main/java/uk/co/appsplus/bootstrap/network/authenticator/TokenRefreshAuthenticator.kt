@@ -12,9 +12,9 @@ import uk.co.appsplus.bootstrap.network.models.AuthorizationType
 import uk.co.appsplus.bootstrap.network.models.TokenRefresh
 import java.util.concurrent.CountDownLatch
 
-class TokenRefreshAuthenticator<Token : AuthToken>(
+class TokenRefreshAuthenticator(
     private val authSessionProvider: AuthSessionProvider,
-    private val tokenRefreshApi: TokenRefreshApi<Token>
+    private val tokenRefreshApi: TokenRefreshApi
 ) : Authenticator {
 
     companion object {
