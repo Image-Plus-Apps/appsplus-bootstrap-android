@@ -14,7 +14,7 @@ interface TokenRefreshApi<Token : AuthToken> {
     ): Token
 }
 
-interface SimpleAuthTokenRefreshApi : TokenRefreshApi<AuthToken> {
+interface SimpleAuthTokenRefreshApi : TokenRefreshApi<SimpleAuthToken> {
     @POST("refresh")
     suspend fun refreshToken(
         @Body tokenRefresh: TokenRefresh,
@@ -24,5 +24,5 @@ interface SimpleAuthTokenRefreshApi : TokenRefreshApi<AuthToken> {
     override suspend fun createNewToken(
         tokenRefresh: TokenRefresh,
         authorization: String
-    ): AuthToken = refreshToken(tokenRefresh, authorization)
+    ): SimpleAuthToken = refreshToken(tokenRefresh, authorization)
 }
