@@ -14,8 +14,7 @@ class MockTokenRefreshApi : TokenRefreshApi<MockAuthToken> {
     var tokens: MutableList<MockAuthToken>? = null
     var timeDelay: Long = 0
 
-    @SuppressWarnings("TooGenericExceptionThrown")
-    override suspend fun refreshToken(
+    override suspend fun createNewToken(
         tokenRefresh: TokenRefresh,
         authorization: String
     ): MockAuthToken {
