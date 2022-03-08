@@ -15,3 +15,7 @@ inline fun <reified Field> ResponseBody.validationErrors():
         null
     }
 }
+
+fun ResponseBody.serverMessage(): ServerMessage? {
+    return ServerMessageAdapter.message(JsonReader.of(source()))
+}
