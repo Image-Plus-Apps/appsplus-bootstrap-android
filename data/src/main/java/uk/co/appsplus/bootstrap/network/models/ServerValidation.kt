@@ -10,10 +10,10 @@ data class ServerValidation<Field>(
 ) {
     companion object {
         inline fun <reified Field> from(
-            jsonReader: JsonReader,
+            response: Map<String, List<String>>?,
             fields: Array<Field>
         ): ServerValidation<Field>? where Field : Enum<Field>, Field : ValidationField {
-            return ServerValidationAdapter.errors(jsonReader)
+            return response
                 ?.let { errors ->
                     fields.fold(
                         emptyMap<Field, List<String>>().toMutableMap()
@@ -27,6 +27,26 @@ data class ServerValidation<Field>(
                 }
                 ?.takeUnless { it.isEmpty() }
                 ?.let { ServerValidation(it) }
+        }
+
+        inline fun <reified Field> from(
+            jsonReader: JsonReader,
+            fields: Array<Field>
+        ): ServerValidation<Field>? where Field : Enum<Field>, Field : ValidationField {
+            return from(
+                ServerValidationAdapter.errors(jsonReader),
+                fields
+            )
+        }
+
+        inline fun <reified Field> from(
+            jsonReader: String,
+            fields: Array<Field>
+        ): ServerValidation<Field>? where Field : Enum<Field>, Field : ValidationField {
+            return from(
+                ServerValidationAdapter.errors(jsonReader),
+                fields
+            )
         }
     }
 }
@@ -45,6 +65,14 @@ object ServerValidationAdapter {
     fun errors(jsonReader: JsonReader): Map<String, List<String>>? {
         return try {
             adapter.fromJson(jsonReader)?.errors
+        } catch (exception: IOException) {
+            null
+        }
+    }
+
+    fun errors(json: String): Map<String, List<String>>? {
+        return try {
+            adapter.fromJson(json)?.errors
         } catch (exception: IOException) {
             null
         }

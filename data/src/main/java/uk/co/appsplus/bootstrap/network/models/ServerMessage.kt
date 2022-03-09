@@ -24,4 +24,12 @@ object ServerMessageAdapter {
             null
         }
     }
+
+    fun message(json: String): ServerMessage? {
+        return try {
+            adapter.fromJson(json)
+        } catch (exception: IOException) {
+            null
+        }
+    }
 }

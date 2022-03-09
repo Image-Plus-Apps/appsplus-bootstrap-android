@@ -16,6 +16,23 @@ inline fun <reified Field> ResponseBody.validationErrors():
     }
 }
 
+@SuppressWarnings("SwallowedException", "TooGenericExceptionCaught")
+inline fun <reified Field> String.validationErrors():
+        ServerValidation<Field>? where Field : Enum<Field>, Field : ValidationField {
+    return try {
+        ServerValidation.from(
+            this,
+            enumValues()
+        )
+    } catch (exception: Exception) {
+        null
+    }
+}
+
 fun ResponseBody.serverMessage(): ServerMessage? {
     return ServerMessageAdapter.message(JsonReader.of(source()))
+}
+
+fun String.serverMessage(): ServerMessage? {
+    return ServerMessageAdapter.message(this)
 }
