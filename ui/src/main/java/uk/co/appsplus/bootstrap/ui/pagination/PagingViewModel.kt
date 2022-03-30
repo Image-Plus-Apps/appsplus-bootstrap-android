@@ -6,6 +6,11 @@ import kotlinx.coroutines.flow.*
 import uk.co.appsplus.bootstrap.network.models.Pagination
 
 open class PagingViewModel<T> : ViewModel() {
+
+    enum class Direction {
+        APPEND, PREPEND
+    }
+
     var nextPage = 1
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
@@ -102,7 +107,8 @@ open class PagingViewModel<T> : ViewModel() {
 
     suspend fun <Input> handleSuccess(
         pagination: Pagination<Input>,
-        map: (List<Input>) -> List<T>
+        map: (List<Input>) -> List<T>,
+        direction: Direction = Direction.APPEND
     ) {
         val (paginationItems, meta) = pagination
 
@@ -110,7 +116,14 @@ open class PagingViewModel<T> : ViewModel() {
         state.hasNextPage = meta.currentPage < meta.lastPage
 
         val items = (state.items.value).takeIf { meta.currentPage != 1 } ?: listOf()
-        state.items.emit(items + map(paginationItems))
+        when (direction) {
+            Direction.APPEND -> {
+                state.items.emit(items + map(paginationItems))
+            }
+            Direction.PREPEND -> {
+                state.items.emit(map(paginationItems) + items)
+            }
+        }
 
         state.loadingState.emit(PagingState.Idle)
     }
