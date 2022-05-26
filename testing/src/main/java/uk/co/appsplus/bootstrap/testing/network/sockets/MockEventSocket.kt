@@ -1,4 +1,4 @@
-package uk.co.appsplus.bootstrap.network.sockets
+package uk.co.appsplus.bootstrap.testing.network.sockets
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

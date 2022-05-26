@@ -35,4 +35,5 @@ dependencies {
 
     implementation "io.kotest:kotest-assertions-core:$kotest_version"
     implementation "io.kotest:kotest-property-jvm:$kotest_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 }
