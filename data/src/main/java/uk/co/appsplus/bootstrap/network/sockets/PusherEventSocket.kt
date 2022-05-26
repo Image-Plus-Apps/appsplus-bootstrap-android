@@ -37,7 +37,7 @@ class PusherEventSocket(
     private fun initialisePusher(): Pusher {
         authorizer.setHeaders(
             mapOf(
-                "Authorization" to authSessionProvider.currentToken()?.accessToken
+                "Authorization" to "Bearer ${authSessionProvider.currentToken()?.accessToken ?: ""}"
             ).plus(additionalAuthHeaders)
         )
         options.authorizer = authorizer
