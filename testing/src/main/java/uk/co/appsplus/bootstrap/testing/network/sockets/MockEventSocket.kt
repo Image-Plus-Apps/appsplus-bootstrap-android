@@ -2,6 +2,7 @@ package uk.co.appsplus.bootstrap.testing.network.sockets
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import uk.co.appsplus.bootstrap.network.sockets.EventSocket
 import uk.co.appsplus.bootstrap.network.models.sockets.SocketChannel
 import uk.co.appsplus.bootstrap.network.models.sockets.SocketEvent
 import uk.co.appsplus.bootstrap.network.models.sockets.SocketMessage
