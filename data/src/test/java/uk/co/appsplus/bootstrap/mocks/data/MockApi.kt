@@ -17,4 +17,7 @@ interface MockApi {
     suspend fun testAcceptHeader(
         @Header("Accept") accept: String?
     )
+
+    @GET("test")
+    suspend fun test()
 }
