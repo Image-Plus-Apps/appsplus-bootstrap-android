@@ -60,9 +60,12 @@ class PusherEventSocket(
                 this@PusherEventSocket.pusher = newPusher
                 newPusher.connect(
                     object : ConnectionEventListener {
+                        var sentConnected = false
                         override fun onConnectionStateChange(change: ConnectionStateChange?) {
-                            trySend(newPusher)
-                            channel.close()
+                            if (!sentConnected) {
+                                trySend(newPusher)
+                                sentConnected = true
+                            }
                         }
 
                         override fun onError(message: String?, code: String?, e: Exception?) {
