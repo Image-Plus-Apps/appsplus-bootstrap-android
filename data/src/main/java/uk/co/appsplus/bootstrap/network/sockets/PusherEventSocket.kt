@@ -2,6 +2,7 @@ package uk.co.appsplus.bootstrap.network.sockets
 
 import com.pusher.client.Pusher
 import com.pusher.client.PusherOptions
+import com.pusher.client.channel.PrivateChannelEventListener
 import com.pusher.client.connection.ConnectionEventListener
 import com.pusher.client.connection.ConnectionState
 import com.pusher.client.connection.ConnectionStateChange
@@ -9,6 +10,8 @@ import com.pusher.client.util.HttpAuthorizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import uk.co.appsplus.bootstrap.network.auth_session.AuthSessionProvider
 import uk.co.appsplus.bootstrap.network.auth_session.currentToken
@@ -74,6 +77,7 @@ class PusherEventSocket(
 
     private fun unsubscribeFromChannel(channel: SocketChannel) {
         pusher?.unsubscribe(channel.name)
+        subscriptions.remove(channel)
     }
 
     override fun subscribe(channel: SocketChannel, events: List<SocketEvent>): Flow<SocketMessage> {
@@ -89,25 +93,61 @@ class PusherEventSocket(
 
         return subscriptions[channel]?.filter { filter(it) } ?: run {
             val scope = CoroutineScope(Dispatchers.IO)
-            val flow = eventsFlow
-                .onStart {
-                    attemptConnection()
-                        .map {
-                            if (channel.isPrivate) {
-                                it.subscribePrivate(channel.name)
-                            } else {
-                                it.subscribe(channel.name)
-                            }
+            val flow = attemptConnection()
+                .flatMapConcat {
+                    callbackFlow {
+                        if (channel.isPrivate) {
+                            it.subscribePrivate(
+                                channel.name,
+                                createEventListener(this)
+                            )
+                        } else {
+                            it.subscribe(
+                                channel.name,
+                                createEventListener(this)
+                            )
                         }
-                        .collect()
+
+                        awaitClose { it.unsubscribe(channel.name) }
+                    }
                 }
                 .catch {
                     unsubscribeFromChannel(channel)
                 }
                 .shareIn(scope, SharingStarted.WhileSubscribed())
+
             subscriptions[channel] = flow
 
             flow.filter { filter(it) }
+        }
+    }
+
+    private fun createEventListener(scope: ProducerScope<SocketMessage>) : PrivateChannelEventListener {
+        return object : PrivateChannelEventListener {
+            override fun onEvent(
+                channelName: String?,
+                eventName: String?,
+                data: String?
+            ) {
+                scope.trySend(
+                    SocketMessage(
+                        SocketChannel(channelName ?: ""),
+                        SocketEvent(eventName ?: ""),
+                        data
+                    )
+                )
+            }
+
+            override fun onSubscriptionSucceeded(channelName: String?) {
+                // Ignore
+            }
+
+            override fun onAuthenticationFailure(
+                message: String?,
+                e: Exception?
+            ) {
+                scope.cancel(CancellationException(message))
+            }
         }
     }
 }
