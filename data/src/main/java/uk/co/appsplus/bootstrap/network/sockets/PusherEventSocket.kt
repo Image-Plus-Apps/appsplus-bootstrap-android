@@ -2,8 +2,7 @@ package uk.co.appsplus.bootstrap.network.sockets
 
 import com.pusher.client.Pusher
 import com.pusher.client.PusherOptions
-import com.pusher.client.channel.PrivateChannelEventListener
-import com.pusher.client.channel.PusherEvent
+import com.pusher.client.channel.*
 import com.pusher.client.connection.ConnectionEventListener
 import com.pusher.client.connection.ConnectionState
 import com.pusher.client.connection.ConnectionStateChange
@@ -77,6 +76,9 @@ class PusherEventSocket(
     private fun unsubscribeFromChannel(channel: SocketChannel) {
         pusher.unsubscribe(channel.name)
         subscriptions.remove(channel)
+        if (subscriptions.isEmpty()) {
+            pusher.disconnect()
+        }
     }
 
     override fun subscribe(
@@ -101,12 +103,28 @@ class PusherEventSocket(
             val flow = attemptConnection()
                 .flatMapLatest {
                     callbackFlow {
-                        val eventListener = createEventListener(this)
-                        it.subscribePrivate(
-                            channel.name,
-                            eventListener
-                        ).also {
-                            it.bindGlobal(eventListener)
+                        when {
+                            channel.isPresence() -> {
+                                val eventListener = SimpleEventListener.presence(this)
+                                it.subscribePresence(
+                                    channel.name,
+                                    eventListener
+                                ).bindGlobal(eventListener)
+                            }
+                            channel.isPrivate() -> {
+                                val eventListener = SimpleEventListener.private(this)
+                                it.subscribePrivate(
+                                    channel.name,
+                                    eventListener
+                                ).bindGlobal(eventListener)
+                            }
+                            else -> {
+                                val eventListener = SimpleEventListener.private(this)
+                                it.subscribe(
+                                    channel.name,
+                                    eventListener
+                                ).bindGlobal(eventListener)
+                            }
                         }
 
                         awaitClose {
@@ -125,30 +143,69 @@ class PusherEventSocket(
         }
     }
 
-    private fun createEventListener(
-        scope: ProducerScope<SocketMessage>
-    ): PrivateChannelEventListener {
-        return object : PrivateChannelEventListener {
-            override fun onEvent(event: PusherEvent?) {
-                scope.trySend(
-                    SocketMessage(
-                        SocketChannel(event?.channelName ?: ""),
-                        SocketEvent(event?.eventName ?: ""),
-                        event?.data
-                    )
-                )
-            }
+    private fun SocketChannel.isPrivate(): Boolean {
+        return name.startsWith("private-")
+    }
 
-            override fun onSubscriptionSucceeded(channelName: String?) {
-                // Ignore
-            }
+    private fun SocketChannel.isPresence(): Boolean {
+        return name.startsWith("presence-")
+    }
+}
 
-            override fun onAuthenticationFailure(
-                message: String?,
-                e: Exception?
-            ) {
-                scope.cancel(CancellationException(message))
+@ExperimentalCoroutinesApi
+@FlowPreview
+private open class SimpleEventListener(
+    val scope: ProducerScope<SocketMessage>
+): ChannelEventListener {
+
+    companion object {
+        fun default(scope: ProducerScope<SocketMessage>): ChannelEventListener {
+            return SimpleEventListener(scope)
+        }
+
+        fun private(scope: ProducerScope<SocketMessage>): PrivateChannelEventListener {
+            return object : SimpleEventListener(scope), PrivateChannelEventListener {
+                override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                    scope.cancel(CancellationException(message))
+                }
             }
         }
+
+        fun presence(scope: ProducerScope<SocketMessage>): PresenceChannelEventListener {
+            return object : SimpleEventListener(scope), PresenceChannelEventListener {
+                override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                    scope.cancel(CancellationException(message))
+                }
+
+                override fun onUsersInformationReceived(
+                    channelName: String?,
+                    users: MutableSet<User>?
+                ) {
+                    // Ignore
+                }
+
+                override fun userSubscribed(channelName: String?, user: User?) {
+                    // Ignore
+                }
+
+                override fun userUnsubscribed(channelName: String?, user: User?) {
+                    // Ignore
+                }
+            }
+        }
+    }
+
+    override fun onEvent(event: PusherEvent?) {
+        scope.trySend(
+            SocketMessage(
+                SocketChannel(event?.channelName ?: ""),
+                SocketEvent(event?.eventName ?: ""),
+                event?.data
+            )
+        )
+    }
+
+    override fun onSubscriptionSucceeded(channelName: String?) {
+        // Ignore
     }
 }
