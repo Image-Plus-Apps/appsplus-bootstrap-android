@@ -1,9 +1,7 @@
 package uk.co.appsplus.bootstrap.ui.pagination
 
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import uk.co.appsplus.bootstrap.network.models.Pagination
