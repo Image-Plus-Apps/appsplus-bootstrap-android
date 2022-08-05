@@ -6,7 +6,7 @@ import androidx.navigation.fragment.findNavController
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 
 inline fun <reified T : ViewModel> Fragment.viewModel(navGraphId: Int): Lazy<T> = lazy {
-    findNavController()
-        .getViewModelStoreOwner(navGraphId)
-        .getViewModel()
+    getViewModel(
+        owner = { findNavController().getViewModelStoreOwner(navGraphId) }
+    )
 }
