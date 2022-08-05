@@ -44,23 +44,23 @@ abstract class PagingFragment<T, VM, Adapter>(
 
     protected open fun bindViewModel() {
         viewModel.state.loadingState
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach(viewModel::handleLoading)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.items
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach(pagedAdapter::submitList)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.isRefreshing
             .filter { !it }
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach { hideRefreshing() }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.isPaging
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach {
                 if (it) {
                     when (pagingDirection) {
@@ -73,7 +73,7 @@ abstract class PagingFragment<T, VM, Adapter>(
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewModel.pagingError
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .filterNotNull()
             .onEach {
                 hideCurrentSnackbar()

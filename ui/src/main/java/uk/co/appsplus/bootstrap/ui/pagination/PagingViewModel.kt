@@ -2,7 +2,10 @@ package uk.co.appsplus.bootstrap.ui.pagination
 
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import uk.co.appsplus.bootstrap.network.models.Pagination
 
 open class PagingViewModel<T> : ViewModel() {
@@ -13,29 +16,34 @@ open class PagingViewModel<T> : ViewModel() {
 
     var nextPage = 1
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     class State<T> {
         val items = MutableStateFlow<List<T>>(listOf())
         val loadingState = MutableStateFlow(PagingState.InitialLoad)
         var hasNextPage = false
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     val state = State<T>()
 
     val items: Flow<List<T>> get() = state.items
+
     val showItems = state.items.combine(state.loadingState) { items, loadingState ->
         items.isNotEmpty() &&
                 loadingState !in listOf(PagingState.InitialLoad, PagingState.InitialLoadError)
     }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val showLoading = state.loadingState.map { it == PagingState.InitialLoad }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     val showEmpty = state.items.combine(state.loadingState) { items, loadingState ->
         items.isEmpty() &&
                 loadingState !in listOf(PagingState.InitialLoad, PagingState.InitialLoadError)
     }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val failedToLoad = state.loadingState.map { it == PagingState.InitialLoadError }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val pagingError = state.loadingState.map {
         when (it) {
             PagingState.RefreshingError -> PagingError.Refresh
@@ -43,9 +51,13 @@ open class PagingViewModel<T> : ViewModel() {
             else -> null
         }
     }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val isRefreshing = state.loadingState.map { it == PagingState.Refreshing }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val isPaging = state.loadingState.map { it == PagingState.Paging }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     suspend fun returnToIdle() {
         state.loadingState.emit(PagingState.Idle)
@@ -76,9 +88,8 @@ open class PagingViewModel<T> : ViewModel() {
         }
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     open suspend fun handleRefresh() {
-        val loadingState = if (state.items.value.isNullOrEmpty()) {
+        val loadingState = if (state.items.value.isEmpty()) {
             PagingState.InitialLoad
         } else {
             PagingState.Refreshing
@@ -86,18 +97,21 @@ open class PagingViewModel<T> : ViewModel() {
         state.loadingState.emit(loadingState)
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     open suspend fun handleFetchNextPage() {
         state.loadingState.emit(PagingState.Paging)
     }
 
-    suspend fun handleLoading(loadingState: PagingState?) {
+    fun handleLoading(loadingState: PagingState?) {
         when (loadingState) {
             PagingState.InitialLoad, PagingState.Refreshing -> {
-                loadPage(page = 1)
+                viewModelScope.launch {
+                    loadPage(page = 1)
+                }
             }
             PagingState.Paging -> {
-                loadPage(nextPage)
+                viewModelScope.launch {
+                    loadPage(nextPage)
+                }
             }
             else -> return
         }
@@ -131,5 +145,13 @@ open class PagingViewModel<T> : ViewModel() {
     suspend fun handleError() {
         val errorState = state.loadingState.value.errorState()
         state.loadingState.emit(errorState)
+    }
+
+    fun updateItems(transform: (List<T>) -> List<T>) {
+        viewModelScope.launch {
+            state.items.emit(
+                transform(state.items.value)
+            )
+        }
     }
 }
