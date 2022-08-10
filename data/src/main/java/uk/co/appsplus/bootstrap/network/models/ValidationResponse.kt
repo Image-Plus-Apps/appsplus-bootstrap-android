@@ -29,6 +29,25 @@ inline fun <reified Field> String.validationErrors():
     }
 }
 
+@SuppressWarnings("SwallowedException", "TooGenericExceptionCaught")
+fun ResponseBody.dynamicValidationErrors(): DynamicServerValidation? {
+    return try {
+        DynamicServerValidation.from(
+            JsonReader.of(source())
+        )
+    } catch (exception: Exception) {
+        null
+    }
+}
+@SuppressWarnings("SwallowedException", "TooGenericExceptionCaught")
+fun String.dynamicValidationErrors(): DynamicServerValidation? {
+    return try {
+        DynamicServerValidation.from(this)
+    } catch (exception: Exception) {
+        null
+    }
+}
+
 fun ResponseBody.serverMessage(): ServerMessage? {
     return ServerMessageAdapter.message(JsonReader.of(source()))
 }
