@@ -74,6 +74,10 @@ sealed class ApiError<out F : ValidationField> {
     }
 }
 
+fun <F> ApiError.Validation<F>.validationErrors(field: F) : List<String>? where F : ValidationField {
+    return errors[field]
+}
+
 fun <F> ApiResult.Failure<F>.validationErrors(field: F) : List<String>? where F : ValidationField {
-    return (error as? ApiError.Validation<F>)?.errors?.validation?.get(field)
+    return (error as? ApiError.Validation<F>)?.validationErrors(field)
 }

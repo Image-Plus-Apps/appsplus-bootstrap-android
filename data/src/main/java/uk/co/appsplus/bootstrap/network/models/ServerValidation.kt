@@ -86,3 +86,7 @@ fun <Field> ServerValidation<Field>.toList(): List<String> {
 fun <Field> ServerValidation<Field>.joinErrors(separator: String = "\n"): String {
     return toList().joinToString(separator)
 }
+
+operator fun <Field> ServerValidation<Field>.get(field: Field): List<String>? {
+    return validation[field]
+}
