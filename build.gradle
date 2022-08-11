@@ -46,6 +46,9 @@ allprojects {
     }
     apply from: "$rootDir/detekt.gradle"
 }
+task buildAll(type: Exec) {
+    commandLine './build.sh'
+}
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
