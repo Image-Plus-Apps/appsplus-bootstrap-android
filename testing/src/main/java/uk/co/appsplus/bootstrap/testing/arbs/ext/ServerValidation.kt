@@ -6,7 +6,9 @@ import uk.co.appsplus.bootstrap.network.models.ResponseError
 import uk.co.appsplus.bootstrap.network.models.ServerValidation
 import uk.co.appsplus.bootstrap.network.models.ValidationField
 
-inline fun <reified Field> Arb.Companion.serverValidation():
+inline fun <reified Field> Arb.Companion.serverValidation(
+    maximumErrorsCount: Int = 2
+):
         Arb<ServerValidation<Field>> where Field : Enum<Field> {
     return Arb.list(
         Arb.enum<Field>(),
@@ -20,7 +22,7 @@ inline fun <reified Field> Arb.Companion.serverValidation():
                         .fold(emptyMap<Field, List<String>>()) { result, field ->
                             val errors = Arb.list(
                                 Arb.string(),
-                                1 until 3
+                                1 until (maximumErrorsCount + 1)
                             )
                             val newMap = result.toMutableMap()
                             newMap[field] = errors.next(it)
@@ -31,13 +33,8 @@ inline fun <reified Field> Arb.Companion.serverValidation():
         }
 }
 
-inline fun <reified Field> Arb.Companion.serverValidationResponse():
-        Arb<Pair<ServerValidation<Field>, Map<String, List<String>>>>
-        where Field : Enum<Field>, Field : ValidationField {
-    return serverValidation<Field>()
-        .map {
-            it to it.validation.mapKeys { it.key.fieldName }
-        }
+fun <Field> ServerValidation<Field>.toJson(): String where Field : ValidationField {
+    return validation.mapKeys { it.key.fieldName }.toJson()
 }
 
 fun Map<String, List<String>>.toJson(): String {

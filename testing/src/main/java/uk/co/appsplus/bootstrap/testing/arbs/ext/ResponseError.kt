@@ -7,9 +7,20 @@ import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
 import uk.co.appsplus.bootstrap.network.models.ResponseError
 
-fun Arb.Companion.domainError(): Arb<ResponseError> {
+fun Arb.Companion.domainError(
+    minimumFieldsCount: Int = 0,
+    maximumFieldsCount: Int = 2,
+    maximumErrorsCount: Int = 2
+): Arb<ResponseError> {
     return Arb
-        .map(Arb.string(), Arb.list(Arb.string(), range = 1..3), minSize = 0, maxSize = 2)
+        .map(
+            Arb.string(),
+            Arb.list(
+                Arb.string(), range = 1 until (maximumErrorsCount + 1)
+            ),
+            minSize = minimumFieldsCount,
+            maxSize = maximumFieldsCount
+        )
         .map { ResponseError(it) }
 }
 
